@@ -1,10 +1,10 @@
-pragma solidity ^0.8.1;
+pragma solidity ^0.4.24;
 
 contract BEP20Interface {
 
-  function symbol() public view returns (string);
+  function symbol() public view returns (string memory);
 
-  function name() public view returns (string);
+  function name() public view returns (string memory);
 
   function decimals() public view returns (uint8);
 
@@ -23,6 +23,7 @@ contract BEP20Interface {
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+  
 }
 
 contract Ownable {
@@ -44,7 +45,7 @@ contract Ownable {
   function transferOwnership(address _newOwner) public onlyOwner {
     owner = _newOwner;
     transferCount = transferCount + 1;
-    TransferOwnership(msg.sender, _newOwner)
+    emit TransferOwnership(msg.sender, _newOwner);
   }
 
   function getOwner() public view returns (address) {
@@ -70,12 +71,12 @@ contract Pausable is Ownable{
 
   function pause() onlyOwner whenUnpaused public {
     paused = true;
-    Paused();
+    emit Paused();
   }
 
   function unpause() onlyOwner whenPaused public {
-    pause = false;
-    Unpaused();
+    paused = false;
+    emit Unpaused();
   }
 }
 
@@ -126,40 +127,40 @@ library SafeMath {
 contract PledgeToken is BEP20Interface, Ownable, Pausable {
   using SafeMath for uint256;
 
-  string public symbol;
-  string public name;
-  uint8 public decimals;
-  uint256 public totalSupply;
+  string public _symbol;
+  string public _name;
+  uint8 public _decimals;
+  uint256 public _totalSupply;
 
-  const uint256 MAX_TOTAL_SUPPLY = 3_000_000_000_000_000_000_000_000_000;
+  uint256 private MAX_TOTAL_SUPPLY = 3000000000000000000000000000;
 
   mapping(address => uint256) balances;
   mapping(address => mapping(address => uint256)) allowances;
 
-  constructor() {
-    symbol = "PLGR";
-    name = "Pledger";
-    decimals = 18;
-    totalSupply = 0;
+  constructor() public {
+    _symbol = "PLGR";
+    _name = "Pledger";
+    _decimals = 18;
+    _totalSupply = 0;
   }
 
-  function symbol() public view returns string {
-    return symbol;
+  function symbol() public view returns (string memory) {
+    return _symbol;
   }
 
-  function name() public view returns string {
-    return name;
+  function name() public view returns (string memory) {
+    return _name;
   }
 
-  function decimals() public view returns uint8 {
-    return decimals;
+  function decimals() public view returns (uint8) {
+    return _decimals;
   }
 
-  function totalSupply() public view returns uint256 {
-    return totalSupply
+  function totalSupply() public view returns (uint256) {
+    return _totalSupply;
   }
 
-  function balanceOf(address _account) public view returns uint256 {
+  function balanceOf(address _account) public view returns (uint256) {
     require(_account != 0x0);
     return balances[_account];
   }
@@ -169,7 +170,7 @@ contract PledgeToken is BEP20Interface, Ownable, Pausable {
   }
 
   function transferFrom(address _from, address _to, uint256 _value) public whenUnpaused returns (bool success) {
-    require(allowances[_from][msg.sender] >= value, "Insufficient allowance");
+    require(allowances[_from][msg.sender] >= _value, "Insufficient allowance");
     allowances[_from][msg.sender] = allowances[_from][msg.sender].sub(_value);
 
     return _transfer(_from, _to, _value);
@@ -179,8 +180,8 @@ contract PledgeToken is BEP20Interface, Ownable, Pausable {
     require(_spender != 0x0);
     allowances[msg.sender][_spender] = _value;
 
-    Approval(msg.sender, _spender, _value);
-    return True;
+    emit Approval(msg.sender, _spender, _value);
+    return true;
   }
 
   function allowance(address _owner, address _spender) public view returns (uint256) {
@@ -204,27 +205,27 @@ contract PledgeToken is BEP20Interface, Ownable, Pausable {
     balances[_from] = balances[_from].sub(_value);
     balances[_to] = balances[_to].add(_value);
 
-    Transfer(_from, _to, _value);
-    return True;
+    emit Transfer(_from, _to, _value);
+    return true;
   }
 
   function _mint(uint256 _amount) public returns (bool success) {
-    uint256 newSupply = _totalSupply.add(amount);
+    uint256 newSupply = _totalSupply.add(_amount);
     require(MAX_TOTAL_SUPPLY >= newSupply, "Mint amount exceeds total supply cap");
 
-    totalSupply = newSupply;
-    balances[msg.sender] = balances[msg.sender].add(amount);
+    _totalSupply = newSupply;
+    balances[msg.sender] = balances[msg.sender].add(_amount);
 
-    Transfer(address(0), msg.sender, amount);
+    emit Transfer(address(0), msg.sender, _amount);
     return true;
   }
 
   function _burn(uint256 _amount) public returns (bool success) {
-    require(balances[msg.sender] >= amount);
-    balances[msg.sender] = balances[msg.sender].sub(amount);
-    totalSupply = totalSuppy.sub(amount);
+    require(balances[msg.sender] >= _amount);
+    balances[msg.sender] = balances[msg.sender].sub(_amount);
+    _totalSupply = _totalSupply.sub(_amount);
 
-    Transfer(msg.sender, address(0), amount);
+    emit Transfer(msg.sender, address(0), _amount);
     return true;
   }
 }
