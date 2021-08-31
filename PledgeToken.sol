@@ -23,11 +23,12 @@ contract BEP20Interface {
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-  
+
 }
 
 contract Ownable {
   address owner;
+  address nextOwner;
   uint32 transferCount;
 
   event TransferOwnership(address indexed _from, address indexed _to);
@@ -43,9 +44,28 @@ contract Ownable {
   }
 
   function transferOwnership(address _newOwner) public onlyOwner {
-    owner = _newOwner;
+    require(_newOwner != address(0));
+    nextOwner = _newOwner;
+  }
+
+  function acceptOwnership() public {
+    require(msg.sender == nextOwner);
+
+    address temp = owner;
+    owner = nextOwner;
+    nextOwner = address(0);
     transferCount = transferCount + 1;
-    emit TransferOwnership(msg.sender, _newOwner);
+
+    emit TransferOwnership(temp, owner);
+  }
+
+  function pendingTransfer() public view returns (bool) {
+    require(msg.sender == owner || msg.sender == nextOwner);
+    return nextOwner != address(0);
+  }
+
+  function getTransferCount() public view returns (uint32) {
+    return transferCount;
   }
 
   function getOwner() public view returns (address) {
@@ -77,6 +97,10 @@ contract Pausable is Ownable{
   function unpause() onlyOwner whenPaused public {
     paused = false;
     emit Unpaused();
+  }
+
+  function isPaused() public view returns (bool) {
+    return paused;
   }
 }
 
