@@ -284,12 +284,10 @@ async function testOwnerTransfer() {
   await getTransferCount()
   await getOwner()
 
-  /*
   console.log('-- Initiate transfer')
   await transferOwnership(web3.eth.accounts.wallet[1].address, ownerOpts)
   await getPendingStatus(ownerOpts)
   await getPendingStatus(otherOpts)
-  */
 
   console.log('-- Approve transfer')
   await acceptOwnership(otherOpts)

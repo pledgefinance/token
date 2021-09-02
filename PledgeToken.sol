@@ -60,7 +60,6 @@ contract Ownable {
   }
 
   function pendingTransfer() public view returns (bool) {
-    require(msg.sender == owner || msg.sender == nextOwner);
     return nextOwner != address(0);
   }
 
