@@ -162,7 +162,7 @@ contract PledgeToken is BEP20Interface, Ownable, Pausable {
 
   constructor() public {
     _symbol = "PLGR";
-    _name = "Pledger";
+    _name = "Pledge Finance";
     _decimals = 18;
     _totalSupply = 0;
   }
