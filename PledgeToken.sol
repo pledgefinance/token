@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.4.24;
 
 contract BEP20Interface {
 
@@ -73,6 +73,11 @@ contract Owned {
     address newOwner;
     uint32 transferCount;
 
+    event TransferInitiated(
+        address indexed _from,
+        address indexed _to
+    );
+
     event TransferOwnership(
         address indexed _from,
         address indexed _to
@@ -94,6 +99,10 @@ contract Owned {
         onlyOwner
     {
         newOwner = _newOwner;
+        emit TransferInitiated(
+            msg.sender,
+            newOwner
+        );
     }
 
     function getOwner()
@@ -521,10 +530,10 @@ contract Token is BEP20Interface, Owned, Pausable, ERC1132 {
         returns (bool success)
     {
         uint256 newSupply = _totalSupply + amount;
-        require(newSupply <= MAX_TOTAL_SUPPLY * 10 **uint256(decimals));
+        require(newSupply <= MAX_TOTAL_SUPPLY.mul(10 ** uint256(decimals)));
 
         _totalSupply = newSupply;
-        balances[owner] += amount;
+        balances[owner] = balances[owner].add(amount);
         emit Transfer(address(0), owner, amount);
         return true;
     }
@@ -537,7 +546,7 @@ contract Token is BEP20Interface, Owned, Pausable, ERC1132 {
     {
         require (balances[msg.sender] >= amount);
         balances[msg.sender] = balances[msg.sender].sub(amount);
-        _totalSupply -= amount;
+        _totalSupply = _totalSupply.sub(amount);
 
         emit Transfer(msg.sender, address(0), amount);
         return true;
