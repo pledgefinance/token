@@ -530,9 +530,7 @@ contract Token is ERC20Interface, Owned, Pausable, ERC1132 {
         returns (bool success)
     {
         uint256 newSupply = _totalSupply + amount;
-        require(newSupply <= 
-        
-        _TOTAL_SUPPLY.mul(10 ** uint256(decimals)));
+        require(newSupply <= MAX_TOTAL_SUPPLY.mul(10 ** uint256(decimals)));
 
         _totalSupply = newSupply;
         balances[owner] = balances[owner].add(amount);
